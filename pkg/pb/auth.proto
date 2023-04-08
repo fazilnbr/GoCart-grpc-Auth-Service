@@ -19,7 +19,8 @@ message RegisterRequest {
 
 message RegisterResponse {
   int64 status = 1;
-  string error = 2;
+  int64 id = 2;
+  string error = 3;
 }
 
 // Login
