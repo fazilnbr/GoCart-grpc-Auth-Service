@@ -46,7 +46,7 @@ swagger: ##Insatall swagger
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-proto:
+proto: ## Generate the grpc protoc
 	protoc pkg/pb/*.proto --go_out=plugins=grpc:.
 	# protoc pkg/pb/*.proto --go_out=. --go-grpc_out=.
 protogen:
