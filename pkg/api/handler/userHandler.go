@@ -37,8 +37,22 @@ func (cr *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*
 }
 
 // Login implements pb.AuthServiceServer
-func (*UserHandler) Login(context.Context, *pb.LoginRequest) (*pb.LoginResponse, error) {
-	panic("unimplemented")
+func (cr *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	user := domain.User{
+		Email:    req.Email,
+		UserName: req.Username,
+		Password: req.Password,
+	}
+	err := cr.userUseCase.Login(user)
+	if err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusUnprocessableEntity,
+		}, err
+	}
+
+	return &pb.LoginResponse{
+		Status: http.StatusOK,
+	}, nil
 }
 
 // Refresh implements pb.AuthServiceServer

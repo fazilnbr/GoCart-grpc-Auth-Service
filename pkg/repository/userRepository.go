@@ -12,21 +12,27 @@ type userDatabase struct {
 	DB *gorm.DB
 }
 
+// FindUserWithEmail implements interfaces.UserRepository
+func (c *userDatabase) FindUserWithEmail(user domain.User) (domain.User, error) {
+	err := c.DB.Where("email = ?", user.Email).First(&user).Error
+	return user, err
+}
+
+// FindUserWithUserName implements interfaces.UserRepository
+func (c *userDatabase) FindUserWithUserName(user domain.User) (domain.User, error) {
+	err := c.DB.Where("user_name = ?", user.UserName).First(&user).Error
+	return user, err
+}
+
 // FindUser implements interfaces.UserRepository
 func (c *userDatabase) FindUser(user domain.User) (int, error) {
 	err := c.DB.Where("user_name = ?", user.UserName).First(&user).Error
 	if err == nil {
-		return 0, errors.New("username alredy exist")
+		return 0, errors.New("Username alredy exist")
 	}
-	// if err == gorm.ErrRecordNotFound {
-	// 	return 0, nil
-	// }
-	// if err != nil {
-	// 	return 0, err
-	// }
 	err = c.DB.Where("email = ?", user.Email).First(&user).Error
 	if err == nil {
-		return 0, errors.New("email alredy exist")
+		return 0, errors.New("Email alredy exist")
 	}
 	if err == gorm.ErrRecordNotFound {
 		return 0, nil

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"crypto/md5"
+	"errors"
 	"fmt"
 
 	"github.com/fazilnbr/banking-grpc-auth-service/pkg/domain"
@@ -11,6 +12,29 @@ import (
 
 type userUseCase struct {
 	userRepo repository.UserRepository
+}
+
+// Login implements interfaces.UserUseCase
+func (c *userUseCase) Login(user domain.User) error {
+	if user.UserName != "" {
+		userData, err := c.userRepo.FindUserWithUserName(user)
+		if err != nil {
+			return errors.New("invalid user name or password")
+		}
+		if !VerifyPassword(user.Password, userData.Password) {
+			return errors.New("invalid user name or password")
+		}
+	} else if user.UserName != "" {
+		userData, err := c.userRepo.FindUserWithEmail(user)
+		if err != nil {
+			return errors.New("invalid email or password")
+		}
+		if !VerifyPassword(user.Password, userData.Password) {
+			return errors.New("invalid email or password")
+		}
+	}
+	return nil
+
 }
 
 // Register implements interfaces.UserUseCase
