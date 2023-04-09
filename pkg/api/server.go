@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/fazilnbr/banking-grpc-auth-service/pkg/api/handler"
+	"github.com/fazilnbr/banking-grpc-auth-service/pkg/pb"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 )
@@ -23,7 +24,7 @@ func NewGRPCServer(userHandler *handler.UserHandler, grpcPort string) {
 
 	grpcServer := grpc.NewServer()
 
-	// pb.RegisterAuthServiceServer(grpcServer, userHandler)
+	pb.RegisterAuthServiceServer(grpcServer, userHandler)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

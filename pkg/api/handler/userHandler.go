@@ -15,13 +15,6 @@ type UserHandler struct {
 	jwtUsecase  usecase.JWTUsecase
 }
 
-func NewUserHandler(usecase usecase.UserUseCase, jwtusecase usecase.JWTUsecase) *UserHandler {
-	return &UserHandler{
-		userUseCase: usecase,
-		jwtUsecase:  jwtusecase,
-	}
-}
-
 func (cr *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 
 	return &pb.RegisterResponse{
@@ -30,4 +23,26 @@ func (cr *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*
 		Error:  fmt.Sprint(errors.New("email already exist")),
 	}, nil
 
+}
+
+// Login implements pb.AuthServiceServer
+func (*UserHandler) Login(context.Context, *pb.LoginRequest) (*pb.LoginResponse, error) {
+	panic("unimplemented")
+}
+
+// Refresh implements pb.AuthServiceServer
+func (*UserHandler) Refresh(context.Context, *pb.RefreshRequest) (*pb.RefreshResponse, error) {
+	panic("unimplemented")
+}
+
+// mustEmbedUnimplementedAuthServiceServer implements pb.AuthServiceServer
+func (*UserHandler) mustEmbedUnimplementedAuthServiceServer() {
+	panic("unimplemented")
+}
+
+func NewUserHandler(usecase usecase.UserUseCase, jwtusecase usecase.JWTUsecase) *UserHandler {
+	return &UserHandler{
+		userUseCase: usecase,
+		jwtUsecase:  jwtusecase,
+	}
 }

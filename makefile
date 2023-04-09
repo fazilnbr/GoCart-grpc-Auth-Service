@@ -48,9 +48,9 @@ help: ## Display this help screen
 
 proto:
 	protoc pkg/pb/*.proto --go_out=plugins=grpc:.
+	# protoc pkg/pb/*.proto --go_out=. --go-grpc_out=.
 protogen:
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-	go install github.com/golang/protobuf/protoc-gen-go@latest
+
 	export GOROOT=/usr/local/go
 	export GOPATH=$HOME/go
 	export GOBIN=$GOPATH/bin
