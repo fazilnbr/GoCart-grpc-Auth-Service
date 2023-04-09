@@ -2,10 +2,9 @@ package handler
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"net/http"
 
+	"github.com/fazilnbr/banking-grpc-auth-service/pkg/domain"
 	"github.com/fazilnbr/banking-grpc-auth-service/pkg/pb"
 	usecase "github.com/fazilnbr/banking-grpc-auth-service/pkg/usecase/interface"
 )
@@ -16,11 +15,23 @@ type UserHandler struct {
 }
 
 func (cr *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	user := domain.User{
+		UserName: req.Username,
+		Password: req.Password,
+		Email:    req.Email,
+	}
+	userId, err := cr.userUseCase.Register(user)
+	if err != nil {
+		return &pb.RegisterResponse{
+			Status: http.StatusUnprocessableEntity,
+			Id:     int64(userId),
+			Error:  "err",
+		}, err
+	}
 
 	return &pb.RegisterResponse{
-		Status: http.StatusUnprocessableEntity,
-		Id:     1,
-		Error:  fmt.Sprint(errors.New("email already exist")),
+		Status: http.StatusOK,
+		Id:     int64(userId),
 	}, nil
 
 }
