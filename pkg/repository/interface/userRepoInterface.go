@@ -5,5 +5,6 @@ import (
 )
 
 type UserRepository interface {
-	Register(user domain.User) (int, error)
+	FindUser(user domain.User) (int, error)
+	CreateUser(user domain.User) (int, error)
 }

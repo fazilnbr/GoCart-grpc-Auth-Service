@@ -15,8 +15,12 @@ type userUseCase struct {
 
 // Register implements interfaces.UserUseCase
 func (c *userUseCase) Register(user domain.User) (int, error) {
-	user.Password=HashPassword(user.Password)
-	userId, err := c.userRepo.Register(user)
+	userId, err := c.userRepo.FindUser(user)
+	if err != nil {
+		return userId, err
+	}
+	user.Password = HashPassword(user.Password)
+	userId, err = c.userRepo.CreateUser(user)
 	return userId, err
 }
 
