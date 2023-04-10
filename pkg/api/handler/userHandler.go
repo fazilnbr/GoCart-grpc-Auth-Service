@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/fazilnbr/banking-grpc-auth-service/pkg/domain"
@@ -44,6 +45,7 @@ func (cr *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Log
 		Password: req.Password,
 	}
 	err := cr.userUseCase.Login(user)
+	fmt.Println(err)
 	if err != nil {
 		return &pb.LoginResponse{
 			Status: http.StatusUnprocessableEntity,
