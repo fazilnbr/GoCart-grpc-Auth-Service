@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/fazilnbr/banking-grpc-auth-service/pkg/domain"
 	"github.com/fazilnbr/banking-grpc-auth-service/pkg/pb"
 	usecase "github.com/fazilnbr/banking-grpc-auth-service/pkg/usecase/interface"
 )
@@ -15,19 +16,103 @@ type UserHandler struct {
 	jwtUsecase  usecase.JWTUsecase
 }
 
+func (cr *UserHandler) TokenRefresh(ctx context.Context, req *pb.TokenRefreshRequest) (*pb.TokenRefreshResponse, error) {
+
+	ok, claims := cr.jwtUsecase.VerifyToken(req.Token)
+	if !ok {
+		return &pb.TokenRefreshResponse{
+			Status: http.StatusUnauthorized,
+			Error:  fmt.Sprint(errors.New("token verification failed")),
+		}, nil
+	}
+
+	fmt.Println("//////////////////////////////////", claims.UserName)
+	accesstoken, err := cr.jwtUsecase.GenerateAccessToken(int(claims.UserId), claims.UserName, "user")
+
+	if err != nil {
+		return &pb.TokenRefreshResponse{
+			Status: http.StatusUnauthorized,
+			Error:  fmt.Sprint(errors.New("unable to generate access token")),
+		}, errors.New(err.Error())
+	}
+	return &pb.TokenRefreshResponse{
+		Status: http.StatusOK,
+		Token:  accesstoken,
+	}, nil
+
+}
+
+// Validate implements pb.AuthServiceServer
+func (cr *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
+	ok, claims := cr.jwtUsecase.VerifyToken(req.Token)
+	fmt.Println("claims", claims.UserId)
+	if !ok {
+		return &pb.ValidateResponse{
+			Status: http.StatusUnauthorized,
+			Error:  fmt.Sprint(errors.New("token verification failed")),
+		}, nil
+	}
+
+	user, err := cr.userUseCase.FindByName(ctx, int(claims.UserId))
+
+	if err != nil {
+		return &pb.ValidateResponse{
+			Status: http.StatusUnauthorized,
+			Error:  fmt.Sprint(errors.New("user not found with token credentials")),
+		}, errors.New(err.Error())
+	}
+
+	return &pb.ValidateResponse{
+		Status: http.StatusOK,
+		UserId: int64(user.IdUser),
+		Source: fmt.Sprint(claims.Source),
+	}, nil
+}
+
 func (cr *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	user := domain.User{
+		UserName: req.Username,
+		Password: req.Password,
+		Email:    req.Email,
+	}
+	_, err := cr.userUseCase.Register(user)
+	if err != nil {
+		return &pb.RegisterResponse{
+			Status: http.StatusUnprocessableEntity,
+			// Id:     int64(userId),
+			Error: "err",
+		}, err
+	}
 
 	return &pb.RegisterResponse{
-		Status: http.StatusUnprocessableEntity,
-		Id:     1,
-		Error:  fmt.Sprint(errors.New("email already exist")),
+		Status: http.StatusOK,
+		// Id:     int64(userId),
 	}, nil
 
 }
 
 // Login implements pb.AuthServiceServer
-func (*UserHandler) Login(context.Context, *pb.LoginRequest) (*pb.LoginResponse, error) {
-	panic("unimplemented")
+func (cr *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	user := domain.User{
+		Email:    req.Email,
+		UserName: req.Username,
+		Password: req.Password,
+	}
+	userData, err := cr.userUseCase.Login(user)
+
+	if err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusUnprocessableEntity,
+			Error:  err.Error(),
+		}, err
+	}
+
+	accesToken, err := cr.jwtUsecase.GenerateAccessToken(userData.IdUser, req.Username, "user")
+
+	return &pb.LoginResponse{
+		Status: http.StatusOK,
+		Token:  accesToken,
+	}, nil
 }
 
 // Refresh implements pb.AuthServiceServer
