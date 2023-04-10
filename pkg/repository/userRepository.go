@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
 	"github.com/fazilnbr/banking-grpc-auth-service/pkg/domain"
 	interfaces "github.com/fazilnbr/banking-grpc-auth-service/pkg/repository/interface"
@@ -10,6 +12,14 @@ import (
 
 type userDatabase struct {
 	DB *gorm.DB
+}
+
+// FindByName implements interfaces.UserRepository
+func (c *userDatabase) FindByName(ctx context.Context, userId int) (domain.User, error) {
+	var user domain.User
+	err := c.DB.Where("id_user = ?", userId).First(&user).Error
+	fmt.Println("err from repos find name", err)
+	return user, err
 }
 
 // FindUserWithEmail implements interfaces.UserRepository

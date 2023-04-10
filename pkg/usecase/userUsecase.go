@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"crypto/md5"
 	"errors"
 	"fmt"
@@ -12,6 +13,12 @@ import (
 
 type userUseCase struct {
 	userRepo repository.UserRepository
+}
+
+// FindByName implements interfaces.UserUseCase
+func (c *userUseCase) FindByName(ctx context.Context, userId int) (domain.User, error) {
+	user, err := c.userRepo.FindByName(ctx, userId)
+	return user, err
 }
 
 // Login implements interfaces.UserUseCase

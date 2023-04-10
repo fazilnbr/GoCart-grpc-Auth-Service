@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/fazilnbr/banking-grpc-auth-service/pkg/domain"
@@ -14,24 +16,77 @@ type UserHandler struct {
 	jwtUsecase  usecase.JWTUsecase
 }
 
+func (cr *UserHandler) TokenRefresh(ctx context.Context, req *pb.TokenRefreshRequest) (*pb.TokenRefreshResponse, error) {
+
+	ok, claims := cr.jwtUsecase.VerifyToken(req.Token)
+	if !ok {
+		return &pb.TokenRefreshResponse{
+			Status: http.StatusUnauthorized,
+			Error:  fmt.Sprint(errors.New("token verification failed")),
+		}, nil
+	}
+
+	fmt.Println("//////////////////////////////////", claims.UserName)
+	accesstoken, err := cr.jwtUsecase.GenerateAccessToken(int(claims.UserId), claims.UserName, "user")
+
+	if err != nil {
+		return &pb.TokenRefreshResponse{
+			Status: http.StatusUnauthorized,
+			Error:  fmt.Sprint(errors.New("unable to generate access token")),
+		}, errors.New(err.Error())
+	}
+	return &pb.TokenRefreshResponse{
+		Status: http.StatusOK,
+		Token:  accesstoken,
+	}, nil
+
+}
+
+// Validate implements pb.AuthServiceServer
+func (cr *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
+	ok, claims := cr.jwtUsecase.VerifyToken(req.Token)
+	fmt.Println("claims", claims.UserId)
+	if !ok {
+		return &pb.ValidateResponse{
+			Status: http.StatusUnauthorized,
+			Error:  fmt.Sprint(errors.New("token verification failed")),
+		}, nil
+	}
+
+	user, err := cr.userUseCase.FindByName(ctx, int(claims.UserId))
+
+	if err != nil {
+		return &pb.ValidateResponse{
+			Status: http.StatusUnauthorized,
+			Error:  fmt.Sprint(errors.New("user not found with token credentials")),
+		}, errors.New(err.Error())
+	}
+
+	return &pb.ValidateResponse{
+		Status: http.StatusOK,
+		UserId: int64(user.IdUser),
+		Source: fmt.Sprint(claims.Source),
+	}, nil
+}
+
 func (cr *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	user := domain.User{
 		UserName: req.Username,
 		Password: req.Password,
 		Email:    req.Email,
 	}
-	userId, err := cr.userUseCase.Register(user)
+	_, err := cr.userUseCase.Register(user)
 	if err != nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusUnprocessableEntity,
-			Id:     int64(userId),
-			Error:  "err",
+			// Id:     int64(userId),
+			Error: "err",
 		}, err
 	}
 
 	return &pb.RegisterResponse{
 		Status: http.StatusOK,
-		Id:     int64(userId),
+		// Id:     int64(userId),
 	}, nil
 
 }
