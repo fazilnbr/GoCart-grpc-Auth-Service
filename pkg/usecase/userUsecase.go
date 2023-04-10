@@ -15,27 +15,29 @@ type userUseCase struct {
 }
 
 // Login implements interfaces.UserUseCase
-func (c *userUseCase) Login(user domain.User) error {
-	fmt.Println("user : ", user.UserName)
+func (c *userUseCase) Login(user domain.User) (domain.User, error) {
+
 	if user.UserName != "" {
 		userData, err := c.userRepo.FindUserWithUserName(user)
 		if err != nil {
-			return errors.New("invalid user name or password")
+			return userData, errors.New("invalid user name or password")
 		}
 		if !VerifyPassword(user.Password, userData.Password) {
-			return errors.New("invalid user name or password")
+			return userData, errors.New("invalid user name or password")
 		}
+		return userData, nil
 	} else if user.Email != "" {
 		userData, err := c.userRepo.FindUserWithEmail(user)
 		fmt.Println("userdata", userData)
 		if err != nil {
-			return errors.New("invalid email or password")
+			return userData, errors.New("invalid email or password")
 		}
 		if !VerifyPassword(user.Password, userData.Password) {
-			return errors.New("invalid email or password")
+			return userData, errors.New("invalid email or password")
 		}
+		return userData, nil
 	}
-	return nil
+	return user, nil
 
 }
 

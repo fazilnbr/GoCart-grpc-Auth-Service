@@ -90,7 +90,7 @@ func (j *jwtUsecase) VerifyToken(signedToken string) (bool, *domain.SignedDetail
 	return false, claims
 }
 
-func NewjwtUsecase() interfaces.JWTUsecase {
+func NewJWTUsecase() interfaces.JWTUsecase {
 	return &jwtUsecase{
 		SecretKey: os.Getenv("SECRET_KEY"),
 	}

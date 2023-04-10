@@ -3,6 +3,6 @@ package interfaces
 import "github.com/fazilnbr/banking-grpc-auth-service/pkg/domain"
 
 type UserUseCase interface {
-	Login(user domain.User) (error)
+	Login(user domain.User) (domain.User, error)
 	Register(user domain.User) (int, error)
 }
