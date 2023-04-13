@@ -46,7 +46,7 @@ func (j *jwtUsecase) GenerateAccessToken(userid int, username string, role strin
 		UserName: username,
 		Source:   "accesstoken",
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Minute * time.Duration(5)).Unix(),
+			ExpiresAt: time.Now().Local().Add(time.Minute * time.Duration(500)).Unix(),
 		},
 	}
 

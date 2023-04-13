@@ -18,6 +18,7 @@ type UserHandler struct {
 
 func (cr *UserHandler) TokenRefresh(ctx context.Context, req *pb.TokenRefreshRequest) (*pb.TokenRefreshResponse, error) {
 
+	fmt.Println("the tocker : ", req.Token)
 	ok, claims := cr.jwtUsecase.VerifyToken(req.Token)
 	if !ok {
 		return &pb.TokenRefreshResponse{
@@ -108,10 +109,26 @@ func (cr *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Log
 	}
 
 	accesToken, err := cr.jwtUsecase.GenerateAccessToken(userData.IdUser, req.Username, "user")
+	if err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusUnprocessableEntity,
+			Error:  "error while generating token",
+		}, err
+
+	}
+	refreshTocken, err := cr.jwtUsecase.GenerateRefreshToken(userData.IdUser, req.Username, "user")
+	if err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusUnprocessableEntity,
+			Error:  "error while generating token",
+		}, err
+
+	}
 
 	return &pb.LoginResponse{
-		Status: http.StatusOK,
-		Token:  accesToken,
+		Status:       http.StatusOK,
+		Accesstoken:  accesToken,
+		Refreshtoken: refreshTocken,
 	}, nil
 }
 
