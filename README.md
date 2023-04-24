@@ -1,4 +1,4 @@
-# GoCart-grpc-Auth-Gateway
+# GoCart-grpc-Auth-Service
 
 ## Description
 
